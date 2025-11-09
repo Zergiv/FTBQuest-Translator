@@ -196,7 +196,7 @@ Some lines have complex JSON structures, nested quotes, or special formatting th
 
 Here's what a translated quest book looks like after translation:
 
-![Translated Quest Examples](https://drive.google.com/u/0/drive-viewer/AKGpihaieSOhTITrJHjqFCsXo_Dg4Rt7aMWXp4IVwal2fhOLC0TQRV45aWuSKbfWKWKjBgq7KmiBgSmEKTbV0n1mXVVL-D4o7VTKmhQ=s1600-rw-v1)
+![Translated Quest Examples](https://i.postimg.cc/pXKfc1tX/photo-collage-png.png)
 
 The tool preserves color codes, formatting, and structure in most cases.
 
