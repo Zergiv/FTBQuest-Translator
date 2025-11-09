@@ -60,7 +60,7 @@ These files are extremely sensitive - even a small formatting error can break th
 1. **Clone this repository**:
    ```bash
    git clone https://github.com/Zergiv/FTBQuest-Translator.git
-   cd snbt-translator
+   cd FTBQuest-Translator
    ```
 
 2. **Install dependencies**:
