@@ -1,6 +1,5 @@
 # 🌍 SNBT File Translator for FTB Quests
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Gemini API](https://img.shields.io/badge/API-Gemini%202.5-orange.svg)](https://ai.google.dev/)
 
@@ -19,7 +18,6 @@ Automatically translate FTB Quests `.snbt` language files using Google's Gemini 
 - [Results](#-results)
 - [Troubleshooting](#-troubleshooting)
 - [Contributing](#-contributing)
-- [License](#-license)
 
 ## 📖 About
 
@@ -29,16 +27,7 @@ Automatically translate FTB Quests `.snbt` language files using Google's Gemini 
 minecraft_root_folder/config/ftbquests/quests/lang/
 ```
 
-These files are extremely sensitive - even a small formatting error can break the entire quest book. This script uses AI-powered translation with built-in validation to ensure **100% file integrity** while translating approximately **80-90%** of the content automatically.
-
-### Why This Tool?
-
-- ✅ Handles 6000+ line files automatically
-- ✅ Preserves Minecraft color codes (`&a`, `&e`, etc.)
-- ✅ Maintains JSON structure and arrays
-- ✅ Validates every translation
-- ✅ Safe fallback to original text on errors
-- ✅ Batch processing with progress tracking
+These files are extremely sensitive - even a small formatting error can break the entire quest book. This script uses AI-powered translation with built-in validation to help translate the content while trying to maintain file integrity.
 
 ## ✨ Features
 
@@ -207,12 +196,9 @@ Some lines have complex JSON structures, nested quotes, or special formatting th
 
 Here's what a translated quest book looks like after translation:
 
-![Translated Quest 1](https://i.ibb.co/C560WV6n/Screenshot-7.jpg)
-![Translated Quest 2](https://i.ibb.co/kgC9KNCZ/Screenshot-6.jpg)
-![Translated Quest 3](https://i.ibb.co/DgsYCNZ9/Screenshot-5.jpg)
-![Translated Quest 4](https://i.ibb.co/Q7JnvfJd/Screenshot-4.jpg)
+![Translated Quest Examples](https://iili.io/KbVdCla.png)
 
-As you can see, color codes, formatting, and structure are perfectly preserved! 🎉
+The tool preserves color codes, formatting, and structure in most cases.
 
 ## 🐛 Troubleshooting
 
