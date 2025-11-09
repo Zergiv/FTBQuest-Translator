@@ -59,7 +59,7 @@ These files are extremely sensitive - even a small formatting error can break th
 
 1. **Clone this repository**:
    ```bash
-   git clone https://github.com/yourusername/snbt-translator.git
+   git clone https://github.com/Zergiv/FTBQuest-Translator.git
    cd snbt-translator
    ```
 
@@ -205,12 +205,8 @@ Some lines have complex JSON structures, nested quotes, or special formatting th
 
 ## 📸 Results
 
-Here's what a translated quest book looks like:
+Here's what a translated quest book looks like after translation:
 
-### Before Translation
-![Original English Quest](https://i.ibb.co/MxcP3spF/Screenshot-3.jpg)
-
-### After Translation
 ![Translated Quest 1](https://i.ibb.co/C560WV6n/Screenshot-7.jpg)
 ![Translated Quest 2](https://i.ibb.co/kgC9KNCZ/Screenshot-6.jpg)
 ![Translated Quest 3](https://i.ibb.co/DgsYCNZ9/Screenshot-5.jpg)
@@ -238,20 +234,6 @@ As you can see, color codes, formatting, and structure are perfectly preserved! 
 - Make sure the output filename matches Minecraft's language code
 - Check the file is in the correct folder
 - Verify the file wasn't corrupted (re-run the script)
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
