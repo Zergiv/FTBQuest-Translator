@@ -2,6 +2,7 @@
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Gemini API](https://img.shields.io/badge/API-Gemini%202.5-orange.svg)](https://ai.google.dev/)
+[![Made by AI](https://img.shields.io/badge/Made%20by-AI-lightgrey?style=for-the-badge)](https://github.com/mefengl/made-by-ai)
 
 Automatically translate FTB Quests `.snbt` language files using Google's Gemini API while preserving file structure, color codes, and formatting. Perfect for modpack creators who want to make their quests accessible in multiple languages!
 
