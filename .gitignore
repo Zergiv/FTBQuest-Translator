@@ -28,10 +28,15 @@ wheels/
 *_key.txt
 api_key.txt
 config_private.py
+config.txt
 
 # SNBT Files (user files)
 *.snbt
 !example_en_us.snbt
+
+# Build files
+*.spec
+*.manifest
 
 # IDE
 .vscode/

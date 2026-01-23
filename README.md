@@ -3,8 +3,73 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Gemini API](https://img.shields.io/badge/API-Gemini%202.5-orange.svg)](https://ai.google.dev/)
 [![Made by AI](https://img.shields.io/badge/Made%20by-AI-lightgrey)](https://github.com/mefengl/made-by-ai)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/Zergiv/FTBQuest-Translator/build.yml)](https://github.com/Zergiv/FTBQuest-Translator/actions)
+[![Latest Release](https://img.shields.io/github/v/release/Zergiv/FTBQuest-Translator)](https://github.com/Zergiv/FTBQuest-Translator/releases)
 
 Automatically translate FTB Quests `.snbt` language files using Google's Gemini API while preserving file structure, color codes, and formatting. Perfect for modpack creators who want to make their quests accessible in multiple languages!
+
+---
+
+## 📸 Interface Preview
+
+```
+┌─────────────────────────────────────────────────┐
+│      🌍 FTB Quest Translator                    │
+├─────────────────────────────────────────────────┤
+│ 🔑 API Key de Gemini                            │
+│ [••••••••••••••••••••••••••••••] [💾]          │
+│                                                  │
+│ 📂 Archivo de Entrada (en_us.snbt)             │
+│ [C:\...\en_us.snbt        ] [🔍] [📁]         │
+│                                                  │
+│ 💾 Archivo de Salida                            │
+│ [C:\...\es_es.snbt        ] [📁]               │
+│                                                  │
+│ 🌐 Idioma: [Spanish ▼]  📦 Lote: [50]         │
+│                                                  │
+│ 📊 Progreso                                     │
+│ ┌─────────────────────────────────────────┐    │
+│ │ ✅ Traducción completada!                │    │
+│ │ 📄 Total de líneas: 1250                 │    │
+│ │ 🔄 Procesando lote 25/25                 │    │
+│ └─────────────────────────────────────────┘    │
+│                                                  │
+│        [  🚀 Iniciar Traducción  ]              │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+## 🚀 Quick Start (GUI Version)
+
+### Option 1: Download Pre-built Executable (Recommended)
+
+1. **Download the latest release**: Go to [Releases](https://github.com/Zergiv/FTBQuest-Translator/releases) and download the executable for your OS:
+   - Windows: `FTBQuestTranslator.exe`
+   - Linux: `FTBQuestTranslator`
+   - macOS: `FTBQuestTranslator`
+
+2. **Run the application**: Double-click the executable (no installation required!)
+
+3. **Configure and translate**:
+   - Enter your Gemini API Key
+   - Select input/output files or let it auto-detect
+   - Choose target language
+   - Click "Iniciar Traducción"
+
+### Option 2: Run from Source
+
+```bash
+# Clone repository
+git clone https://github.com/Zergiv/FTBQuest-Translator.git
+cd FTBQuest-Translator
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run GUI
+python translator_gui.py
+```
 
 ## 📋 Table of Contents
 
@@ -12,8 +77,10 @@ Automatically translate FTB Quests `.snbt` language files using Google's Gemini 
 - [Features](#-features)
 - [Requirements](#-requirements)
 - [Installation](#-installation)
-- [Configuration](#-configuration)
 - [Usage](#-usage)
+  - [GUI Version](#gui-version-recommended)
+  - [CLI Version](#cli-version-advanced)
+- [Building from Source](#-building-from-source)
 - [How It Works](#-how-it-works)
 - [Important Notes](#-important-notes)
 - [Results](#-results)
@@ -32,20 +99,36 @@ These files are extremely sensitive - even a small formatting error can break th
 
 ## ✨ Features
 
+- 🖥️ **Modern GUI**: Clean, intuitive interface with dark theme
+- 🔍 **Auto-Detection**: Automatically finds quest files in common locations
 - 🤖 **AI-Powered Translation**: Uses Google Gemini 2.5 Flash for accurate translations
 - 🔒 **Safe by Design**: Validates each line and keeps originals on error
 - 🎨 **Color Code Preservation**: Maintains all Minecraft formatting codes
 - 📊 **Progress Tracking**: Real-time feedback on translation progress
 - 🔄 **Batch Processing**: Efficiently handles large files
 - ⚡ **Fast & Reliable**: Processes 50 lines per batch with error recovery
+- 💾 **Portable**: Single executable, no installation needed
+- 🔧 **GitHub Actions**: Automated builds for Windows, Linux, and macOS
 
 ## 📦 Requirements
 
+### For Pre-built Executable:
+- **Nothing!** Just download and run
+
+### For Running from Source:
 - Python 3.8 or higher
 - Google Gemini API key (free tier available)
 - Internet connection
 
 ## 🚀 Installation
+
+### Using Pre-built Executable (Easiest)
+
+1. Go to [Releases](https://github.com/Zergiv/FTBQuest-Translator/releases)
+2. Download the latest version for your OS
+3. Run the executable - that's it!
+
+### From Source
 
 1. **Clone this repository**:
    ```bash
@@ -55,7 +138,7 @@ These files are extremely sensitive - even a small formatting error can break th
 
 2. **Install dependencies**:
    ```bash
-   pip install google-generativeai
+   pip install -r requirements.txt
    ```
 
 3. **Get your Gemini API key**:
@@ -63,9 +146,35 @@ These files are extremely sensitive - even a small formatting error can break th
    - Create a new API key (it's free!)
    - Copy your key
 
-## ⚙️ Configuration
+## 🎯 Usage
 
-1. **Open `snbt_translator.py` and configure**:
+### GUI Version (Recommended)
+
+1. **Run the application**:
+   - Double-click the executable, or
+   - Run `python translator_gui.py` from source
+
+2. **Enter API Key**:
+   - Paste your Gemini API key in the first field
+   - Click the 💾 button to save it for future use
+
+3. **Select Files**:
+   - Click 🔍 to auto-detect quest files, or
+   - Click 📁 to manually browse for files
+   - Choose your output file location
+
+4. **Configure**:
+   - Select target language from dropdown
+   - Adjust batch size if needed (default: 50)
+
+5. **Translate**:
+   - Click "🚀 Iniciar Traducción"
+   - Monitor progress in the log window
+   - Wait for completion message
+
+### CLI Version (Advanced)
+
+For the command-line version, edit `snbt_translator.py`:
 
 ```python
 # Replace with your API key
@@ -78,7 +187,12 @@ TARGET_LANGUAGE = "Spanish"    # Target language name
 BATCH_SIZE = 50                # Lines per batch
 ```
 
-2. **Set the correct output filename**:
+Then run:
+```bash
+python snbt_translator.py
+```
+
+### Supported Languages
 
 According to [Minecraft's language codes](https://minecraft.fandom.com/wiki/Language), use the proper format:
 
@@ -95,82 +209,66 @@ According to [Minecraft's language codes](https://minecraft.fandom.com/wiki/Lang
 
 **Full list**: [Minecraft Language Codes](https://minecraft.fandom.com/wiki/Language)
 
-## 🎯 Usage
+## 🛠️ Building from Source
 
-### Step 1: Locate Your Quest Files
-
-Navigate to your Minecraft instance folder:
-```
-minecraft_root_folder/config/ftbquests/quests/lang/
-```
-
-### Step 2: Copy the File
-
-Copy the language file you want to translate (usually `en_us.snbt`) to the script directory.
-
-### Step 3: Run the Script
+### Windows
 
 ```bash
-python snbt_translator.py
+# Run the build script
+build.bat
 ```
 
-### Step 4: Follow the Prompts
+### Linux/macOS
 
-```
-============================================================
-SNBT FILE TRANSLATOR - FTB QUESTS
-============================================================
+```bash
+# Make script executable
+chmod +x build.sh
 
-Configuration:
-  - Input file: en_us.snbt
-  - Output file: es_es.snbt
-  - Target language: Spanish
-  - Batch size: 50 lines
-
-Do you want to continue? (y/n): y
+# Run the build script
+./build.sh
 ```
 
-### Step 5: Wait for Completion
+The executable will be created in the `dist/` folder.
 
-The script will process your file in batches, showing progress:
+### Manual Build
 
-```
-Processing batch 1/120 (lines 1-50)
-  - 45 translatable lines found
-  ⚠️  Line 127: Color codes altered - using original
-  ⚠️  2 lines with errors - keeping originals
+```bash
+# Install PyInstaller
+pip install pyinstaller
 
-Processing batch 2/120 (lines 51-100)
-  - 48 translatable lines found
-
-...
-
-✅ Translation complete! File saved at: es_es.snbt
+# Build executable
+pyinstaller --onefile --windowed --name "FTBQuestTranslator" --noconsole translator_gui.py
 ```
 
-### Step 6: Copy the Translated File
+## 🔄 GitHub Actions
 
-Copy the generated file back to:
+This project includes automated builds via GitHub Actions. On every push or tag:
+
+1. Builds executables for Windows, Linux, and macOS
+2. Uploads artifacts for download
+3. Creates releases automatically when you push a tag:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
 ```
-minecraft_root_folder/config/ftbquests/quests/lang/
-```
 
-### Step 7: Manual Touch-ups (Optional)
-
-For the 10-20% of lines that weren't translated (due to validation errors), you can manually translate them using any text editor that supports `.snbt` files (VS Code, Notepad++, etc.).
+The workflow file is located at [.github/workflows/build.yml](.github/workflows/build.yml).
 
 ## 🔧 How It Works
 
 1. **File Reading**: Loads the entire `.snbt` file
-2. **Line Identification**: Detects which lines contain translatable text
-3. **Batch Translation**: Sends 50 lines at a time to Gemini API with strict rules
-4. **Validation**: Each translation is checked for:
+2. **Auto-Detection**: Searches for quest files in common Minecraft locations
+3. **Line Identification**: Detects which lines contain translatable text
+4. **Batch Translation**: Sends 50 lines at a time to Gemini API with strict rules
+5. **Validation**: Each translation is checked for:
    - Correct quote count
    - Preserved color codes
    - Maintained structure (brackets, braces, colons)
    - Unchanged keys (quest IDs, chapter IDs)
-5. **Safe Fallback**: If validation fails, the original line is kept
-6. **File Output**: Writes the validated translation to the output file
+6. **Safe Fallback**: If validation fails, the original line is kept
+7. **File Output**: Writes the validated translation to the output file
+8. **Progress Tracking**: Real-time updates in the GUI log window
 
 ## ⚠️ Important Notes
 
@@ -204,23 +302,52 @@ The tool preserves color codes, formatting, and structure in most cases.
 ## 🐛 Troubleshooting
 
 ### "File not found" Error
-- Make sure `en_us.snbt` is in the same directory as the script
+- Click the 🔍 auto-detect button in the GUI
+- Manually browse for the file with 📁
+- Make sure `en_us.snbt` exists in your quest folder
 - Check the filename matches exactly (case-sensitive)
 
 ### API Errors
 - Verify your API key is correct
+- Click 💾 to save the API key
 - Check your internet connection
-- Ensure you haven't exceeded API rate limits
+- Ensure you haven't exceeded API rate limits (free tier has limits)
 
 ### Many Validation Errors
 - This is normal! The script keeps originals for safety
 - You can manually translate skipped lines later
-- Consider reducing `BATCH_SIZE` to 25 for more accuracy
+- Consider reducing batch size to 25 for more accuracy
+- Complex JSON structures may be skipped automatically
 
-### Quest Book Not Loading
+### Quest Book Not Loading in Minecraft
 - Make sure the output filename matches Minecraft's language code
-- Check the file is in the correct folder
-- Verify the file wasn't corrupted (re-run the script)
+- Check the file is in the correct folder: `config/ftbquests/quests/lang/`
+- Verify the file wasn't corrupted (check file size)
+- Re-run the script if needed
+
+### GUI Not Opening
+- Make sure you downloaded the correct version for your OS
+- On Linux/macOS, make the file executable: `chmod +x FTBQuestTranslator`
+- Try running from source: `python translator_gui.py`
+- Check if Python 3.8+ is installed
+
+### Build Issues
+- Ensure all dependencies are installed: `pip install -r requirements.txt`
+- Update PyInstaller: `pip install --upgrade pyinstaller`
+- Check Python version: `python --version` (must be 3.8+)
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to:
+
+- 🐛 Report bugs
+- 💡 Suggest features
+- 🔧 Submit pull requests
+- 📚 Improve documentation
+
+## 📄 License
+
+This project is open source and available for free use.
 
 ## 🙏 Acknowledgments
 
