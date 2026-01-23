@@ -8,46 +8,13 @@
 
 Automatically translate FTB Quests `.snbt` language files using Google's Gemini API while preserving file structure, color codes, and formatting. Perfect for modpack creators who want to make their quests accessible in multiple languages!
 
----
-
-## 📸 Interface Preview
-
-```
-┌─────────────────────────────────────────────────┐
-│      🌍 FTB Quest Translator                    │
-├─────────────────────────────────────────────────┤
-│ 🔑 API Key de Gemini                            │
-│ [••••••••••••••••••••••••••••••] [💾]          │
-│                                                  │
-│ 📂 Archivo de Entrada (en_us.snbt)             │
-│ [C:\...\en_us.snbt        ] [🔍] [📁]         │
-│                                                  │
-│ 💾 Archivo de Salida                            │
-│ [C:\...\es_es.snbt        ] [📁]               │
-│                                                  │
-│ 🌐 Idioma: [Spanish ▼]  📦 Lote: [50]         │
-│                                                  │
-│ 📊 Progreso                                     │
-│ ┌─────────────────────────────────────────┐    │
-│ │ ✅ Traducción completada!                │    │
-│ │ 📄 Total de líneas: 1250                 │    │
-│ │ 🔄 Procesando lote 25/25                 │    │
-│ └─────────────────────────────────────────┘    │
-│                                                  │
-│        [  🚀 Iniciar Traducción  ]              │
-└─────────────────────────────────────────────────┘
-```
-
----
 
 ## 🚀 Quick Start (GUI Version)
 
 ### Option 1: Download Pre-built Executable (Recommended)
 
-1. **Download the latest release**: Go to [Releases](https://github.com/Zergiv/FTBQuest-Translator/releases) and download the executable for your OS:
+1. **Download the latest release**: Go to [Releases](https://github.com/Zergiv/FTBQuest-Translator/releases) and download the executable:
    - Windows: `FTBQuestTranslator.exe`
-   - Linux: `FTBQuestTranslator`
-   - macOS: `FTBQuestTranslator`
 
 2. **Run the application**: Double-click the executable (no installation required!)
 
@@ -240,20 +207,6 @@ pip install pyinstaller
 pyinstaller --onefile --windowed --name "FTBQuestTranslator" --noconsole translator_gui.py
 ```
 
-## 🔄 GitHub Actions
-
-This project includes automated builds via GitHub Actions. On every push or tag:
-
-1. Builds executables for Windows, Linux, and macOS
-2. Uploads artifacts for download
-3. Creates releases automatically when you push a tag:
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-The workflow file is located at [.github/workflows/build.yml](.github/workflows/build.yml).
 
 ## 🔧 How It Works
 
