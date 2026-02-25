@@ -1,12 +1,12 @@
-import google.generativeai as genai
+from google import genai
 import time
 import re
 import os
 
 GEMINI_API_KEY = "YOUR_API_KEY_HERE"  # Replace with your API key
-genai.configure(api_key=GEMINI_API_KEY)
+client = genai.Client(api_key=GEMINI_API_KEY)
 
-model = genai.GenerativeModel('gemini-2.5-flash')
+MODEL_NAME = 'gemini-3-flash-preview'
 
 # Configuration
 BATCH_SIZE = 50  # Lines per batch
@@ -125,7 +125,7 @@ TEXT TO TRANSLATE:
 IMPORTANT: Return ONLY translated lines with format LINE_X|||content"""
 
     try:
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(model=MODEL_NAME, contents=prompt)
         result = response.text.strip()
         
         translated_lines = []

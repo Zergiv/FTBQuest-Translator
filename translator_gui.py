@@ -1,12 +1,13 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
-import google.generativeai as genai
+from google import genai
 import time
 import re
 import os
 import sys
 from pathlib import Path
 import threading
+import string
 
 class SNBTTranslatorGUI:
     def __init__(self, root):
@@ -32,7 +33,7 @@ class SNBTTranslatorGUI:
         
         self.setup_ui()
         self.load_config()
-        self.auto_detect_files()
+        # Don't auto-detect on startup, let user use the search button
         
     def setup_ui(self):
         """Crea la interfaz gráfica"""
@@ -123,16 +124,15 @@ class SNBTTranslatorGUI:
         
         auto_btn = tk.Button(
             input_frame,
-            text="🔍",
-            command=self.auto_detect_files,
-            bg=self.button_bg,
+            text="🔍 Auto",
+            command=self.search_quest_folders,
+            bg="#6c3483",
             fg="white",
             relief=tk.FLAT,
             font=("Segoe UI", 9),
             cursor="hand2",
-            width=3
         )
-        auto_btn.pack(side=tk.RIGHT, ipady=5)
+        auto_btn.pack(side=tk.RIGHT, ipady=5, padx=2)
         
         # Output File Section
         self.create_section(main_frame, "💾 Archivo de Salida", 4)
@@ -295,6 +295,217 @@ class SNBTTranslatorGUI:
             self.log(f"✅ Archivos detectados automáticamente en: {en_us_file.parent}")
         else:
             self.log("ℹ️ No se encontraron archivos .snbt automáticamente")
+    
+    def search_quest_folders(self):
+        """Busca carpetas ftbquests/lang en todo el sistema, estilo Everything"""
+        self.log("🔍 Buscando carpetas de FTB Quests en el sistema...")
+        self.log("   Esto puede tardar unos segundos...")
+        self.root.update_idletasks()
+        
+        thread = threading.Thread(target=self._search_quest_folders_thread, daemon=True)
+        thread.start()
+    
+    def _search_quest_folders_thread(self):
+        """Hilo de búsqueda de carpetas ftbquests"""
+        found_paths = []
+        target_parts = ("ftbquests", "quests", "lang")
+        
+        # Determinar raíces de búsqueda
+        search_roots = []
+        if sys.platform == "win32":
+            # Buscar en todas las unidades disponibles
+            for letter in string.ascii_uppercase:
+                drive = f"{letter}:\\"
+                if os.path.exists(drive):
+                    # Priorizar carpetas de usuario y comunes
+                    user_dirs = [
+                        os.path.join(drive, "Users"),
+                        os.path.join(drive, "Games"),
+                        os.path.join(drive, "Program Files"),
+                        os.path.join(drive, "Program Files (x86)"),
+                        os.path.join(drive, "curseforge"),
+                        os.path.join(drive, "MultiMC"),
+                        os.path.join(drive, "PrismLauncher"),
+                        os.path.join(drive, "ATLauncher"),
+                        os.path.join(drive, "FTB"),
+                    ]
+                    for d in user_dirs:
+                        if os.path.isdir(d):
+                            search_roots.append(d)
+                    # Agregar raíz del disco como fallback
+                    search_roots.append(drive)
+        else:
+            search_roots = [os.path.expanduser("~"), "/opt", "/usr/local"]
+        
+        # Eliminar duplicados manteniendo orden
+        seen = set()
+        unique_roots = []
+        for r in search_roots:
+            rn = os.path.normpath(r).lower()
+            if rn not in seen:
+                seen.add(rn)
+                unique_roots.append(r)
+        
+        self.root.after(0, lambda: self.log(f"   Escaneando {len(unique_roots)} ubicaciones..."))
+        
+        for root_dir in unique_roots:
+            try:
+                for dirpath, dirnames, filenames in os.walk(root_dir, topdown=True):
+                    # Podar directorios innecesarios para velocidad
+                    dirnames[:] = [
+                        d for d in dirnames
+                        if not d.startswith('.') 
+                        and d.lower() not in ('$recycle.bin', 'windows', 'system32',
+                                              'syswow64', 'winsxs', 'node_modules',
+                                              '.git', '__pycache__', 'appdata')
+                    ]
+                    
+                    # Comprobar si el path actual contiene la estructura objetivo
+                    norm_path = dirpath.replace('\\', '/').lower()
+                    if norm_path.endswith('ftbquests/quests/lang') or norm_path.endswith('ftbquests\\quests\\lang'):
+                        # Verificar que contenga archivos .snbt
+                        snbt_files = [f for f in filenames if f.endswith('.snbt')]
+                        if snbt_files:
+                            found_paths.append(dirpath)
+                            self.root.after(0, lambda p=dirpath: self.log(f"   ✅ Encontrado: {p}"))
+                            
+                            if len(found_paths) >= 20:  # Limitar resultados
+                                break
+            except PermissionError:
+                continue
+            except Exception:
+                continue
+            
+            if len(found_paths) >= 20:
+                break
+        
+        # Mostrar resultados en el hilo principal
+        self.root.after(0, lambda: self._show_folder_results(found_paths))
+    
+    def _show_folder_results(self, found_paths):
+        """Muestra los resultados de búsqueda y permite al usuario elegir"""
+        if not found_paths:
+            self.log("❌ No se encontraron carpetas de FTB Quests")
+            self.log("   Usa el botón 📁 para buscar manualmente")
+            return
+        
+        self.log(f"\n🎯 Se encontraron {len(found_paths)} carpeta(s):")
+        
+        # Crear ventana de selección
+        select_win = tk.Toplevel(self.root)
+        select_win.title("Seleccionar carpeta de quests")
+        select_win.geometry("700x400")
+        select_win.configure(bg=self.bg_color)
+        select_win.transient(self.root)
+        select_win.grab_set()
+        
+        # Header
+        header = tk.Label(
+            select_win,
+            text="📂 Carpetas de FTB Quests encontradas",
+            font=("Segoe UI", 14, "bold"),
+            bg=self.accent_color,
+            fg="white",
+            pady=10
+        )
+        header.pack(fill=tk.X)
+        
+        subtitle = tk.Label(
+            select_win,
+            text="Selecciona la carpeta del modpack que quieres traducir:",
+            font=("Segoe UI", 10),
+            bg=self.bg_color,
+            fg=self.fg_color,
+            pady=5
+        )
+        subtitle.pack(fill=tk.X, padx=10)
+        
+        # Lista
+        list_frame = tk.Frame(select_win, bg=self.bg_color)
+        list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        
+        scrollbar = tk.Scrollbar(list_frame)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        listbox = tk.Listbox(
+            list_frame,
+            bg=self.entry_bg,
+            fg=self.fg_color,
+            selectbackground=self.accent_color,
+            selectforeground="white",
+            font=("Consolas", 10),
+            relief=tk.FLAT,
+            yscrollcommand=scrollbar.set
+        )
+        listbox.pack(fill=tk.BOTH, expand=True)
+        scrollbar.config(command=listbox.yview)
+        
+        for i, path in enumerate(found_paths):
+            # Mostrar path y los archivos snbt que contiene
+            snbt_files = [f for f in os.listdir(path) if f.endswith('.snbt')]
+            display = f"{path}  [{', '.join(snbt_files[:3])}{'...' if len(snbt_files) > 3 else ''}]"
+            listbox.insert(tk.END, display)
+        
+        if found_paths:
+            listbox.selection_set(0)
+        
+        def on_select():
+            sel = listbox.curselection()
+            if not sel:
+                messagebox.showwarning("Aviso", "Selecciona una carpeta primero")
+                return
+            selected_path = found_paths[sel[0]]
+            # Buscar en_us.snbt
+            en_us = os.path.join(selected_path, "en_us.snbt")
+            if os.path.exists(en_us):
+                self.input_file_var.set(en_us)
+                # Determinar salida según idioma
+                lang_map = {
+                    "Spanish": "es_es", "French": "fr_fr", "German": "de_de",
+                    "Portuguese": "pt_br", "Italian": "it_it", "Japanese": "ja_jp",
+                    "Chinese": "zh_cn", "Korean": "ko_kr"
+                }
+                lang_code = lang_map.get(self.target_lang_var.get(), "es_es")
+                output = os.path.join(selected_path, f"{lang_code}.snbt")
+                self.output_file_var.set(output)
+                self.log(f"\n✅ Seleccionado: {selected_path}")
+                self.log(f"   Entrada: en_us.snbt")
+                self.log(f"   Salida: {lang_code}.snbt")
+            else:
+                # Usar primer snbt encontrado
+                snbt_files = [f for f in os.listdir(selected_path) if f.endswith('.snbt')]
+                if snbt_files:
+                    self.input_file_var.set(os.path.join(selected_path, snbt_files[0]))
+                    self.log(f"\n⚠️ en_us.snbt no encontrado, usando: {snbt_files[0]}")
+            select_win.destroy()
+        
+        # Botones
+        btn_frame = tk.Frame(select_win, bg=self.bg_color)
+        btn_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        select_btn = tk.Button(
+            btn_frame,
+            text="✅ Seleccionar",
+            command=on_select,
+            bg="#28a745",
+            fg="white",
+            relief=tk.FLAT,
+            font=("Segoe UI", 11, "bold"),
+            cursor="hand2"
+        )
+        select_btn.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=(0, 5), ipady=5)
+        
+        cancel_btn = tk.Button(
+            btn_frame,
+            text="❌ Cancelar",
+            command=select_win.destroy,
+            bg="#dc3545",
+            fg="white",
+            relief=tk.FLAT,
+            font=("Segoe UI", 11),
+            cursor="hand2"
+        )
+        cancel_btn.pack(side=tk.RIGHT, expand=True, fill=tk.X, padx=(5, 0), ipady=5)
             
     def browse_input_file(self):
         """Abre diálogo para seleccionar archivo de entrada"""
@@ -361,8 +572,8 @@ class SNBTTranslatorGUI:
         
         try:
             # Configurar API
-            genai.configure(api_key=self.api_key_var.get().strip())
-            model = genai.GenerativeModel('gemini-2.5-flash')
+            client = genai.Client(api_key=self.api_key_var.get().strip())
+            model_name = 'gemini-3-flash-preview'
             
             input_file = self.input_file_var.get()
             output_file = self.output_file_var.get()
@@ -409,7 +620,7 @@ class SNBTTranslatorGUI:
                     self.log(f"   📝 {len(lines_to_translate)} líneas para traducir")
                     
                     # Traducir
-                    translated = self.translate_batch(model, lines_to_translate, target_lang)
+                    translated = self.translate_batch(client, model_name, lines_to_translate, target_lang)
                     
                     # Validar y reemplazar
                     validation_errors = 0
@@ -501,7 +712,7 @@ class SNBTTranslatorGUI:
         
         return True, "OK"
     
-    def translate_batch(self, model, lines, target_language):
+    def translate_batch(self, client, model_name, lines, target_language):
         """Traduce un lote de líneas usando Gemini"""
         batch_text = "\n".join([f"LINE_{i}|||{line}" for i, line in enumerate(lines)])
         
@@ -552,7 +763,7 @@ TEXT TO TRANSLATE TO {target_language}:
 IMPORTANT: Return ONLY translated lines with format LINE_X|||content"""
 
         try:
-            response = model.generate_content(prompt)
+            response = client.models.generate_content(model=model_name, contents=prompt)
             result = response.text.strip()
             
             translated_lines = []
