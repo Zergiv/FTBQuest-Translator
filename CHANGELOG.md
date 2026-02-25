@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-02-25
+
+### Changed
+- 🔍 Reescrita completa de la búsqueda automática de archivos: ahora busca directamente en rutas conocidas de launchers (ATLauncher, CurseForge, MultiMC, PrismLauncher, Modrinth, FTB App) usando el patrón `config/ftbquests/quests/lang`
+- 🚀 Al abrir la aplicación, se buscan archivos automáticamente y se muestra un diálogo para elegir cuál traducir
+- ⚡ Búsqueda mucho más rápida: ya no escanea carpetas innecesarias como Users o Program Files completos
+
+### Fixed
+- 🐛 Corregido el problema de que la búsqueda tardaba mucho escaneando 7+ ubicaciones irrelevantes
+- 🐛 Corregido que se excluía la carpeta AppData del escaneo, donde la mayoría de launchers guardan sus instancias
+
 ## [1.0.0] - 2026-01-23
 
 ### Added

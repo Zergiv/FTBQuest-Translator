@@ -33,7 +33,8 @@ class SNBTTranslatorGUI:
         
         self.setup_ui()
         self.load_config()
-        # Don't auto-detect on startup, let user use the search button
+        # Auto-buscar archivos de quests al iniciar
+        self.root.after(500, self.search_quest_folders)
         
     def setup_ui(self):
         """Crea la interfaz gráfica"""
@@ -305,96 +306,132 @@ class SNBTTranslatorGUI:
         thread = threading.Thread(target=self._search_quest_folders_thread, daemon=True)
         thread.start()
     
-    def _search_quest_folders_thread(self):
-        """Hilo de búsqueda de carpetas ftbquests"""
-        found_paths = []
-        target_parts = ("ftbquests", "quests", "lang")
+    def _get_search_bases(self):
+        """Devuelve las rutas base donde buscar instancias de Minecraft"""
+        search_bases = []
         
-        # Determinar raíces de búsqueda
-        search_roots = []
         if sys.platform == "win32":
-            # Buscar en todas las unidades disponibles
+            appdata = os.environ.get("APPDATA", "")
+            userprofile = os.environ.get("USERPROFILE", "")
+            
+            if appdata:
+                search_bases.extend([
+                    os.path.join(appdata, "ATLauncher", "instances"),
+                    os.path.join(appdata, ".minecraft"),
+                    os.path.join(appdata, "PrismLauncher", "instances"),
+                    os.path.join(appdata, "MultiMC", "instances"),
+                    os.path.join(appdata, "com.modrinth.theseus", "profiles"),
+                    os.path.join(appdata, "FTBApp", "instances"),
+                    os.path.join(appdata, "ftblauncher", "instances"),
+                ])
+            
+            if userprofile:
+                search_bases.extend([
+                    os.path.join(userprofile, "curseforge", "minecraft", "Instances"),
+                    os.path.join(userprofile, "Documents", "curseforge", "minecraft", "Instances"),
+                ])
+            
+            # Buscar en raíz de todas las unidades carpetas comunes de launchers
             for letter in string.ascii_uppercase:
                 drive = f"{letter}:\\"
                 if os.path.exists(drive):
-                    # Priorizar carpetas de usuario y comunes
-                    user_dirs = [
-                        os.path.join(drive, "Users"),
-                        os.path.join(drive, "Games"),
-                        os.path.join(drive, "Program Files"),
-                        os.path.join(drive, "Program Files (x86)"),
-                        os.path.join(drive, "curseforge"),
-                        os.path.join(drive, "MultiMC"),
-                        os.path.join(drive, "PrismLauncher"),
-                        os.path.join(drive, "ATLauncher"),
-                        os.path.join(drive, "FTB"),
-                    ]
-                    for d in user_dirs:
-                        if os.path.isdir(d):
-                            search_roots.append(d)
-                    # Agregar raíz del disco como fallback
-                    search_roots.append(drive)
+                    search_bases.extend([
+                        os.path.join(drive, "curseforge", "minecraft", "Instances"),
+                        os.path.join(drive, "MultiMC", "instances"),
+                        os.path.join(drive, "PrismLauncher", "instances"),
+                        os.path.join(drive, "ATLauncher", "instances"),
+                        os.path.join(drive, "FTBApp", "instances"),
+                        os.path.join(drive, "Games", "MultiMC", "instances"),
+                        os.path.join(drive, "Games", "PrismLauncher", "instances"),
+                    ])
         else:
-            search_roots = [os.path.expanduser("~"), "/opt", "/usr/local"]
+            home = os.path.expanduser("~")
+            search_bases.extend([
+                os.path.join(home, ".minecraft"),
+                os.path.join(home, ".local", "share", "PrismLauncher", "instances"),
+                os.path.join(home, ".local", "share", "multimc", "instances"),
+                os.path.join(home, ".local", "share", "ATLauncher", "instances"),
+                os.path.join(home, ".var", "app", "org.prismlauncher.PrismLauncher", "data", "PrismLauncher", "instances"),
+            ])
         
-        # Eliminar duplicados manteniendo orden
+        # También buscar desde el directorio actual
+        search_bases.append(os.getcwd())
+        
+        # Filtrar solo directorios que existen y eliminar duplicados
         seen = set()
-        unique_roots = []
-        for r in search_roots:
-            rn = os.path.normpath(r).lower()
-            if rn not in seen:
-                seen.add(rn)
-                unique_roots.append(r)
+        unique = []
+        for b in search_bases:
+            norm = os.path.normpath(b).lower()
+            if norm not in seen and os.path.isdir(b):
+                seen.add(norm)
+                unique.append(b)
         
-        self.root.after(0, lambda: self.log(f"   Escaneando {len(unique_roots)} ubicaciones..."))
+        return unique
+    
+    def _search_quest_folders_thread(self):
+        """Hilo de búsqueda de carpetas ftbquests usando glob en rutas conocidas de launchers"""
+        found_files = []  # lista de (file_path, instance_name)
+        seen_paths = set()
         
-        for root_dir in unique_roots:
+        search_bases = self._get_search_bases()
+        
+        self.root.after(0, lambda: self.log(f"   Escaneando {len(search_bases)} ubicaciones de launchers..."))
+        
+        for base_dir in search_bases:
             try:
-                for dirpath, dirnames, filenames in os.walk(root_dir, topdown=True):
-                    # Podar directorios innecesarios para velocidad
-                    dirnames[:] = [
-                        d for d in dirnames
-                        if not d.startswith('.') 
-                        and d.lower() not in ('$recycle.bin', 'windows', 'system32',
-                                              'syswow64', 'winsxs', 'node_modules',
-                                              '.git', '__pycache__', 'appdata')
-                    ]
+                base_path = Path(base_dir)
+                # Buscar el patrón config/ftbquests/quests/lang en subdirectorios
+                for lang_dir in base_path.glob("**/config/ftbquests/quests/lang"):
+                    if not lang_dir.is_dir():
+                        continue
                     
-                    # Comprobar si el path actual contiene la estructura objetivo
-                    norm_path = dirpath.replace('\\', '/').lower()
-                    if norm_path.endswith('ftbquests/quests/lang') or norm_path.endswith('ftbquests\\quests\\lang'):
-                        # Verificar que contenga archivos .snbt
-                        snbt_files = [f for f in filenames if f.endswith('.snbt')]
-                        if snbt_files:
-                            found_paths.append(dirpath)
-                            self.root.after(0, lambda p=dirpath: self.log(f"   ✅ Encontrado: {p}"))
-                            
-                            if len(found_paths) >= 20:  # Limitar resultados
-                                break
+                    norm = str(lang_dir).lower()
+                    if norm in seen_paths:
+                        continue
+                    seen_paths.add(norm)
+                    
+                    snbt_files = list(lang_dir.glob("*.snbt"))
+                    if not snbt_files:
+                        continue
+                    
+                    # Extraer nombre de la instancia desde la ruta
+                    try:
+                        parts = lang_dir.parts
+                        config_idx = list(parts).index("config")
+                        instance_name = parts[config_idx - 1] if config_idx > 0 else "Desconocido"
+                    except (ValueError, IndexError):
+                        instance_name = "Desconocido"
+                    
+                    for f in snbt_files:
+                        found_files.append((str(f), instance_name))
+                        self.root.after(0, lambda n=instance_name, fn=f.name: self.log(f"   ✅ {n}: {fn}"))
+                    
+                    if len(found_files) >= 50:
+                        break
             except PermissionError:
                 continue
             except Exception:
                 continue
             
-            if len(found_paths) >= 20:
+            if len(found_files) >= 50:
                 break
         
         # Mostrar resultados en el hilo principal
-        self.root.after(0, lambda: self._show_folder_results(found_paths))
+        self.root.after(0, lambda: self._show_file_results(found_files))
     
-    def _show_folder_results(self, found_paths):
-        """Muestra los resultados de búsqueda y permite al usuario elegir"""
-        if not found_paths:
-            self.log("❌ No se encontraron carpetas de FTB Quests")
+    def _show_file_results(self, found_files):
+        """Muestra los archivos .snbt encontrados y permite al usuario elegir"""
+        if not found_files:
+            self.log("❌ No se encontraron archivos de FTB Quests")
             self.log("   Usa el botón 📁 para buscar manualmente")
             return
         
-        self.log(f"\n🎯 Se encontraron {len(found_paths)} carpeta(s):")
+        self.log(f"\n🎯 Se encontraron {len(found_files)} archivo(s):")
         
         # Crear ventana de selección
         select_win = tk.Toplevel(self.root)
-        select_win.title("Seleccionar carpeta de quests")
-        select_win.geometry("700x400")
+        select_win.title("Seleccionar archivo de quests")
+        select_win.geometry("750x450")
         select_win.configure(bg=self.bg_color)
         select_win.transient(self.root)
         select_win.grab_set()
@@ -402,7 +439,7 @@ class SNBTTranslatorGUI:
         # Header
         header = tk.Label(
             select_win,
-            text="📂 Carpetas de FTB Quests encontradas",
+            text="📂 Archivos de FTB Quests encontrados",
             font=("Segoe UI", 14, "bold"),
             bg=self.accent_color,
             fg="white",
@@ -412,7 +449,7 @@ class SNBTTranslatorGUI:
         
         subtitle = tk.Label(
             select_win,
-            text="Selecciona la carpeta del modpack que quieres traducir:",
+            text="He encontrado estos archivos. ¿Cuál quieres traducir?",
             font=("Segoe UI", 10),
             bg=self.bg_color,
             fg=self.fg_color,
@@ -440,43 +477,39 @@ class SNBTTranslatorGUI:
         listbox.pack(fill=tk.BOTH, expand=True)
         scrollbar.config(command=listbox.yview)
         
-        for i, path in enumerate(found_paths):
-            # Mostrar path y los archivos snbt que contiene
-            snbt_files = [f for f in os.listdir(path) if f.endswith('.snbt')]
-            display = f"{path}  [{', '.join(snbt_files[:3])}{'...' if len(snbt_files) > 3 else ''}]"
+        for file_path, instance_name in found_files:
+            file_name = os.path.basename(file_path)
+            display = f"[{instance_name}]  {file_name}  —  {file_path}"
             listbox.insert(tk.END, display)
         
-        if found_paths:
+        if found_files:
             listbox.selection_set(0)
         
         def on_select():
             sel = listbox.curselection()
             if not sel:
-                messagebox.showwarning("Aviso", "Selecciona una carpeta primero")
+                messagebox.showwarning("Aviso", "Selecciona un archivo primero")
                 return
-            selected_path = found_paths[sel[0]]
-            # Buscar en_us.snbt
-            en_us = os.path.join(selected_path, "en_us.snbt")
-            if os.path.exists(en_us):
-                self.input_file_var.set(en_us)
-                # Determinar salida según idioma
-                lang_map = {
-                    "Spanish": "es_es", "French": "fr_fr", "German": "de_de",
-                    "Portuguese": "pt_br", "Italian": "it_it", "Japanese": "ja_jp",
-                    "Chinese": "zh_cn", "Korean": "ko_kr"
-                }
-                lang_code = lang_map.get(self.target_lang_var.get(), "es_es")
-                output = os.path.join(selected_path, f"{lang_code}.snbt")
-                self.output_file_var.set(output)
-                self.log(f"\n✅ Seleccionado: {selected_path}")
-                self.log(f"   Entrada: en_us.snbt")
-                self.log(f"   Salida: {lang_code}.snbt")
-            else:
-                # Usar primer snbt encontrado
-                snbt_files = [f for f in os.listdir(selected_path) if f.endswith('.snbt')]
-                if snbt_files:
-                    self.input_file_var.set(os.path.join(selected_path, snbt_files[0]))
-                    self.log(f"\n⚠️ en_us.snbt no encontrado, usando: {snbt_files[0]}")
+            selected_file = found_files[sel[0]][0]
+            selected_dir = os.path.dirname(selected_file)
+            
+            self.input_file_var.set(selected_file)
+            
+            # Determinar salida según idioma
+            lang_map = {
+                "Spanish": "es_es", "French": "fr_fr", "German": "de_de",
+                "Portuguese": "pt_br", "Italian": "it_it", "Japanese": "ja_jp",
+                "Chinese": "zh_cn", "Korean": "ko_kr"
+            }
+            lang_code = lang_map.get(self.target_lang_var.get(), "es_es")
+            output = os.path.join(selected_dir, f"{lang_code}.snbt")
+            self.output_file_var.set(output)
+            
+            self.log(f"\n✅ Seleccionado:")
+            self.log(f"   📂 Instancia: {found_files[sel[0]][1]}")
+            self.log(f"   📄 Entrada: {os.path.basename(selected_file)}")
+            self.log(f"   💾 Salida: {lang_code}.snbt")
+            self.log(f"   📍 Ruta: {selected_dir}")
             select_win.destroy()
         
         # Botones
